@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RxAI — المساعد الطبي الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0a1628; --navy2:#0f2040; --teal:#0d9488; --teal2:#14b8a6;
+  --teal-light:#ccfbf1; --gold:#f59e0b; --red:#ef4444;
+  --gray1:#e2e8f0; --gray2:#94a3b8; --gray3:#475569;
+  --text:#1e293b; --border:#e2e8f0;
+  --shadow:0 4px 24px rgba(10,22,40,.10); --shadow2:0 2px 8px rgba(10,22,40,.07);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;background:#f0f4f8;color:var(--text);min-height:100vh;direction:rtl;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* LOGIN */
+#screen-login{
+  background:linear-gradient(135deg,var(--navy) 0%,#0f3460 60%,#16213e 100%);
+  align-items:center;justify-content:center;flex-direction:column;
+}
+.login-card{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.13);border-radius:24px;
+  padding:48px 40px;width:100%;max-width:440px;animation:fadeUp .5s ease;
+}
+.login-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px;}
+.login-logo-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.login-title{font-family:'DM Serif Display',serif;font-size:32px;color:#fff;}
+.login-sub{text-align:center;color:rgba(255,255,255,.5);font-size:14px;margin-bottom:30px;}
+.login-label{color:rgba(255,255,255,.7);font-size:13px;margin-bottom:6px;display:block;}
+.login-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:15px;outline:none;margin-bottom:13px;direction:ltr;}
+.login-input:focus{border-color:var(--teal2);}
+.login-input::placeholder{color:rgba(255,255,255,.3);}
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,var(--teal),#0f766e);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-login:hover{opacity:.9;}
+.api-note{margin-top:16px;padding:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;line-height:1.7;text-align:center;}
+.api-note a{color:var(--gold);}
+
+/* APP */
+#screen-app{flex-direction:column;background:#f0f4f8;}
+.navbar{background:var(--navy);padding:0 22px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 14px rgba(0,0,0,.2);position:sticky;top:0;z-index:100;}
+.navbar-brand{display:flex;align-items:center;gap:10px;}
+.navbar-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.navbar-name{font-family:'DM Serif Display',serif;color:#fff;font-size:19px;}
+.navbar-name span{color:var(--teal2);}
+.navbar-right{display:flex;align-items:center;gap:10px;}
+.lang-toggle{display:flex;border:1px solid rgba(255,255,255,.15);border-radius:7px;overflow:hidden;}
+.lang-btn{padding:5px 10px;background:transparent;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;}
+.lang-btn.active{background:var(--teal);color:#fff;}
+.doctor-badge{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 10px;color:rgba(255,255,255,.8);font-size:13px;}
+.doctor-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;}
+.btn-logout{background:transparent;border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.7);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-family:'Tajawal',sans-serif;}
+.btn-logout:hover{background:rgba(239,68,68,.1);}
+
+.app-body{display:flex;flex:1;overflow:hidden;height:calc(100vh - 58px);}
+
+/* SIDEBAR */
+.sidebar{width:245px;min-width:245px;background:var(--navy2);display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.06);overflow-y:auto;}
+.sidebar-section{padding:16px 13px 6px;}
+.sidebar-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.3);text-transform:uppercase;padding:0 7px;margin-bottom:7px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.55);cursor:pointer;font-size:14px;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:right;font-family:'Tajawal',sans-serif;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.nav-item.active{background:rgba(13,148,136,.25);color:var(--teal2);}
+.nav-item .ico{font-size:15px;width:20px;text-align:center;}
+.sidebar-div{height:1px;background:rgba(255,255,255,.06);margin:9px 13px;}
+.patient-mini{padding:9px 12px;border-radius:8px;cursor:pointer;margin:2px 0;border:none;background:transparent;width:100%;text-align:right;font-family:'Tajawal',sans-serif;}
+.patient-mini:hover{background:rgba(255,255,255,.05);}
+.pm-name{font-size:13px;color:rgba(255,255,255,.75);font-weight:500;}
+.pm-diag{font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;}
+
+.content{flex:1;overflow-y:auto;padding:22px;}
+.view{display:none;}
+.view.active{display:block;}
+.page-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.page-sub{font-size:13px;color:var(--gray2);margin-bottom:22px;}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:22px;}
+.stat-card{background:#fff;border-radius:var(--radius);padding:17px 19px;box-shadow:var(--shadow2);border-top:3px solid var(--border);}
+.stat-card.t{border-top-color:var(--teal);}
+.stat-card.g{border-top-color:var(--gold);}
+.stat-card.n{border-top-color:var(--navy);}
+.stat-num{font-size:28px;font-weight:900;}
+.stat-label{font-size:12px;color:var(--gray2);margin-top:2px;}
+
+.patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px;}
+.patient-card{background:#fff;border-radius:var(--radius);padding:17px;box-shadow:var(--shadow2);cursor:pointer;transition:transform .2s;border-right:4px solid var(--teal);}
+.patient-card:hover{transform:translateY(-2px);}
+.pc-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+.pc-meta{font-size:12px;color:var(--gray2);margin-bottom:8px;}
+.pc-diag{display:inline-block;background:var(--teal-light);color:var(--teal);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.pc-date{font-size:11px;color:var(--gray2);margin-top:7px;}
+.empty-state{grid-column:1/-1;text-align:center;color:var(--gray2);padding:40px 0;}
+.empty-icon{font-size:42px;margin-bottom:10px;}
+
+.form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow2);overflow:hidden;margin-bottom:16px;}
+.fcard-head{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:14px 20px;display:flex;align-items:center;gap:9px;}
+.fcard-head h3{color:#fff;font-size:15px;font-weight:600;}
+.fcard-body{padding:20px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+.frow.s{grid-template-columns:1fr;}
+.frow.t{grid-template-columns:1fr 1fr 1fr;}
+.fgroup{display:flex;flex-direction:column;gap:5px;}
+.flabel{font-size:13px;font-weight:600;color:var(--gray3);}
+.flabel em{color:var(--red);font-style:normal;}
+.finput{padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Tajawal',sans-serif;font-size:14px;color:var(--text);outline:none;background:#fff;direction:rtl;width:100%;}
+.finput:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+textarea.finput{resize:vertical;min-height:78px;line-height:1.6;}
+
+.ai-panel{background:linear-gradient(135deg,var(--navy),#0f3460);border-radius:var(--radius);padding:24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.ai-panel::before{content:'';position:absolute;top:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(13,148,136,.2),transparent 70%);border-radius:50%;}
+.ai-title{color:#fff;font-size:17px;font-weight:700;display:flex;align-items:center;gap:9px;margin-bottom:5px;position:relative;}
+.ai-sub{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:16px;position:relative;}
+.ai-disc{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.28);border-radius:9px;padding:10px 13px;margin-bottom:16px;color:rgba(255,255,255,.8);font-size:12.5px;line-height:1.7;position:relative;}
+.btn-ai{padding:12px 26px;background:linear-gradient(135deg,var(--teal),#0f766e);color:#fff;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;position:relative;}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed;}
+.ai-load{display:none;align-items:center;gap:11px;color:rgba(255,255,255,.7);font-size:14px;margin-top:13px;position:relative;}
+.ai-load.on{display:flex;}
+.spin{width:19px;height:19px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--teal2);border-radius:50%;animation:spin .8s linear infinite;}
+.ai-box{display:none;margin-top:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:16px;position:relative;}
+.ai-box.on{display:block;}
+.ai-text{color:rgba(255,255,255,.88);font-size:13px;line-height:1.9;white-space:pre-wrap;direction:ltr;text-align:left;font-family:'JetBrains Mono',monospace;}
+.ai-acts{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap;}
+.btn-use{padding:9px 17px;background:var(--teal);color:#fff;border:none;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-regen{padding:9px 17px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);border-radius:7px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;}
+
+.rx-paper{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;max-width:740px;margin:0 auto;}
+.rx-head{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:20px 26px;display:flex;justify-content:space-between;align-items:flex-start;}
+.rx-doc-n{font-family:'DM Serif Display',serif;font-size:21px;color:#fff;margin-bottom:3px;}
+.rx-doc-s{color:rgba(255,255,255,.6);font-size:13px;}
+.rx-body{padding:26px;}
+.rx-sec{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gray2);text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:11px;margin-top:18px;}
+.rx-prow{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+.rx-fl{font-size:11px;color:var(--gray2);margin-bottom:2px;}
+.rx-fv{font-size:14px;font-weight:600;}
+.rx-area{width:100%;min-height:125px;padding:12px;border:1.5px solid var(--border);border-radius:9px;font-family:'Tajawal',sans-serif;font-size:14px;line-height:1.8;color:var(--text);outline:none;resize:vertical;direction:rtl;background:#fafbfc;}
+.rx-area:focus{border-color:var(--teal);}
+.rx-foot{display:flex;justify-content:space-between;align-items:center;padding:16px 26px;background:#f8fafc;border-top:1px solid var(--border);}
+.rx-date-lbl{font-size:13px;color:var(--gray2);}
+.rx-sig-lbl{font-size:11px;color:var(--gray2);}
+.rx-sig-line{width:145px;border-bottom:1px solid var(--gray1);margin-top:28px;}
+
+.sett-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow2);padding:24px;margin-bottom:16px;max-width:560px;}
+.sett-card h3{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.sett-row{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
+.sett-lbl{font-size:13px;font-weight:600;color:var(--gray3);}
+.sett-hint{font-size:11px;color:var(--gray2);}
+.sett-hint a{color:var(--teal);}
+
+.btn-p{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-p:hover{background:var(--teal2);}
+.btn-s{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:#fff;color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-s:hover{border-color:var(--teal);color:var(--teal);}
+.btn-pr{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-pr:hover{background:var(--teal);}
+.act-row{display:flex;gap:9px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:9px;font-size:14px;z-index:9999;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--teal);}
+.toast.err{background:var(--red);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@media print{body *{visibility:hidden;}.rx-paper,.rx-paper *{visibility:visible;}.rx-paper{position:fixed;top:0;right:0;width:100%;}.no-print{display:none!important;}}
+@media(max-width:768px){.sidebar{display:none;}.stats-row{grid-template-columns:1fr 1fr;}.frow{grid-template-columns:1fr;}.frow.t{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">💊</div>
+      <div class="login-title">Rx<span style="color:var(--teal2)">AI</span></div>
+    </div>
+    <p class="login-sub">المساعد الطبي الذكي للوصفات — Assistant Médical IA</p>
+    <label class="login-label">اسم الطبيب / Nom du médecin</label>
+    <input id="inp-doctor" class="login-input" type="text" placeholder="Dr. Amin Bellala">
+    <label class="login-label">التخصص / Spécialité</label>
+    <input id="inp-spec" class="login-input" type="text" placeholder="Psychiatre — Psychologue Clinicien">
+    <label class="login-label">🔑 Gemini API Key</label>
+    <input id="inp-apikey" class="login-input" type="password" placeholder="AIza...">
+    <button class="btn-login" onclick="doLogin()">دخول — Connexion ←</button>
+    <div class="api-note">
+      مفتاح مجاني من
+      <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a><br>
+      النموذج: <strong>gemini-1.5-flash</strong>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="screen-app" class="screen">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-icon">💊</div>
+      <div class="navbar-name">Rx<span>AI</span></div>
+    </div>
+    <div class="navbar-right">
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="btn-ar" onclick="setLang('ar')">AR</button>
+        <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+      </div>
+      <div class="doctor-badge">
+        <div class="doctor-avatar" id="doc-avatar">د</div>
+        <span id="doc-name">الطبيب</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">خروج</button>
+    </div>
+  </nav>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">القائمة</div>
+        <button class="nav-item active" id="nav-dashboard" onclick="gotoView('dashboard')">
+          <span class="ico">🏠</span><span>الرئيسية</span>
+        </button>
+        <button class="nav-item" id="nav-newpt" onclick="gotoView('newpt')">
+          <span class="ico">➕</span><span>مريض جديد</span>
+        </button>
+        <button class="nav-item" id="nav-settings" onclick="gotoView('settings')">
+          <span class="ico">⚙️</span><span>الإعدادات</span>
+        </button>
+      </div>
+      <div class="sidebar-div"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">آخر المرضى</div>
+        <div id="side-pts"></div>
+      </div>
+    </aside>
+
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <div id="view-dashboard" class="view active">
+        <div class="page-title">لوحة التحكم</div>
+        <div class="page-sub">مرحباً بك — إليك نظرة عامة على عملك</div>
+        <div class="stats-row">
+          <div class="stat-card t"><div class="stat-num" id="st-total">0</div><div class="stat-label">إجمالي المرضى</div></div>
+          <div class="stat-card g"><div class="stat-num" id="st-today">0</div><div class="stat-label">وصفات اليوم</div></div>
+          <div class="stat-card n"><div class="stat-num" id="st-ai">0</div><div class="stat-label">استشارات AI</div></div>
+        </div>
+        <div class="form-card">
+          <div class="fcard-head"><span>👥</span><h3>قائمة المرضى</h3></div>
+          <div class="fcard-body">
+            <div id="pts-grid" class="patients-grid">
+              <div class="empty-state"><div class="empty-icon">📋</div><div>لا يوجد مرضى بعد — اضغط "مريض جديد"</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW PATIENT -->
+      <div id="view-newpt" class="view">
+        <div class="page-title">ملف مريض جديد</div>
+        <div class="page-sub">أدخل بيانات المريض للحصول على اقتراح دوائي ذكي</div>
+
+        <div class="form-card">
+          <div class="fcard-head"><span>👤</span><h3>معلومات المريض</h3></div>
+          <div class="fcard-body">
+            <div class="frow t">
+              <div class="fgroup">
+                <label class="flabel">الاسم الكامل <em>*</em></label>
+                <input class="finput" id="pt-name" type="text" placeholder="أحمد بن علي">
+              </div>
+              <div class="fgroup">
+                <label class="flabel">العمر <em>*</em></label>
+                <input class="finput" id="pt-age" type="number" min="1" max="120" placeholder="35">
+              </div>
+              <div class="fgroup">
+                <label class="flabel">الجنس</label>
+                <select class="finput" id="pt-gender">
+                  <option value="male">ذكر</option>
+                  <option value="female">أنثى</option>
+                </select>
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fgroup">
+                <label class="flabel">الوظيفة / النشاط</label>
+                <input class="finput" id="pt-job" type="text" placeholder="مدرّس">
+              </div>
+              <div class="fgroup">
+                <label class="flabel">الأمراض المزمنة</label>
+                <input class="finput" id="pt-chronic" type="text" placeholder="داء السكري...">
+              </div>
+            </div>
+            <div class="frow s">
+              <div class="fgroup">
+                <label class="flabel">الأدوية الحالية</label>
+                <input class="finput" id="pt-meds" type="text" placeholder="ميتفورمين 500 مغ">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="fcard-head"><span>🩺</span><h3>البيانات السريرية</h3></div>
+          <div class="fcard-body">
+            <div class="frow s">
+              <div class="fgroup">
+                <label class="flabel">الأعراض الرئيسية <em>*</em></label>
+                <textarea class="finput" id="pt-symptoms" rows="3" placeholder="اكتئاب شديد مع أرق، فقدان الشهية منذ 3 أسابيع..."></textarea>
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fgroup">
+                <label class="flabel">التشخيص الطبي <em>*</em></label>
+                <input class="finput" id="pt-diagnosis" type="text" placeholder="اضطراب اكتئابي كبير — F32.2">
+              </div>
+              <div class="fgroup">
+                <label class="flabel">شدة الحالة</label>
+                <select class="finput" id="pt-severity">
+                  <option value="mild">خفيفة</option>
+                  <option value="moderate" selected>متوسطة</option>
+                  <option value="severe">شديدة</option>
+                </select>
+              </div>
+            </div>
+            <div class="frow s">
+              <div class="fgroup">
+                <label class="flabel">ملاحظات الطبيب</label>
+                <textarea class="finput" id="pt-notes" rows="2" placeholder="تعليمات خاصة للحالة..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="act-row">
+          <button class="btn-s" onclick="gotoView('dashboard')">↩ رجوع</button>
+          <button class="btn-p" onclick="goToAI()">🤖 طلب اقتراح دوائي</button>
+        </div>
+      </div>
+
+      <!-- AI VIEW -->
+      <div id="view-ai" class="view">
+        <div class="page-title">الاقتراح الدوائي الذكي</div>
+        <div class="page-sub">Gemini يبحث في آخر الدراسات الطبية</div>
+        <div class="ai-panel">
+          <div class="ai-title">🤖 استشارة الذكاء الاصطناعي الطبي</div>
+          <p class="ai-sub" id="ai-summary"></p>
+          <div class="ai-disc">⚠️ هذه الاقتراحات استشارية فقط. القرار العلاجي النهائي يعود حصراً للطبيب المعالج.</div>
+          <button class="btn-ai" id="btn-ai" onclick="askGemini()">✨ ابدأ التحليل والاقتراح</button>
+          <div class="ai-load" id="ai-load"><div class="spin"></div><span>جاري التحليل والبحث في الدراسات...</span></div>
+          <div class="ai-box" id="ai-box">
+            <div class="ai-text" id="ai-text"></div>
+            <div class="ai-acts">
+              <button class="btn-use" onclick="goToRx()">✅ استخدام في الوصفة</button>
+              <button class="btn-regen" onclick="askGemini()">🔄 إعادة التوليد</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRESCRIPTION -->
+      <div id="view-rx" class="view">
+        <div class="page-title no-print">الوصفة الطبية النهائية</div>
+        <div class="page-sub no-print">راجع وعدّل الوصفة — القرار النهائي للطبيب</div>
+        <div class="rx-paper">
+          <div class="rx-head">
+            <div>
+              <div class="rx-doc-n" id="rx-doc-n">—</div>
+              <div class="rx-doc-s" id="rx-doc-s">—</div>
+              <div style="color:rgba(255,255,255,.4);font-size:12px;margin-top:7px;" id="rx-date-h"></div>
+            </div>
+            <div style="font-size:36px;opacity:.4">💊</div>
+          </div>
+          <div class="rx-body">
+            <div class="rx-sec">معلومات المريض</div>
+            <div class="rx-prow">
+              <div><div class="rx-fl">الاسم</div><div class="rx-fv" id="rx-name">—</div></div>
+              <div><div class="rx-fl">العمر / الجنس</div><div class="rx-fv" id="rx-age">—</div></div>
+              <div><div class="rx-fl">التشخيص</div><div class="rx-fv" id="rx-diag">—</div></div>
+            </div>
+            <div class="rx-sec">الوصفة الدوائية</div>
+            <textarea class="rx-area" id="rx-drugs" rows="8" placeholder="اكتب الوصفة هنا أو استخدم اقتراح AI..."></textarea>
+            <div class="rx-sec">تعليمات خاصة</div>
+            <textarea class="rx-area" id="rx-inst" rows="3" placeholder="تعليمات إضافية للمريض..."></textarea>
+          </div>
+          <div class="rx-foot">
+            <div class="rx-date-lbl" id="rx-date-f"></div>
+            <div><div class="rx-sig-lbl">توقيع الطبيب — Signature</div><div class="rx-sig-line"></div></div>
+          </div>
+        </div>
+        <div class="act-row no-print">
+          <button class="btn-s" onclick="gotoView('ai')">↩ رجوع</button>
+          <button class="btn-s" onclick="savePt()">💾 حفظ المريض</button>
+          <button class="btn-pr" onclick="doPrint()">🖨️ طباعة</button>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="view">
+        <div class="page-title">الإعدادات</div>
+        <div class="page-sub">إدارة إعدادات التطبيق</div>
+        <div class="sett-card">
+          <h3>معلومات الطبيب</h3>
+          <div class="sett-row">
+            <label class="sett-lbl">الاسم</label>
+            <input class="finput" id="set-name" type="text">
+          </div>
+          <div class="sett-row">
+            <label class="sett-lbl">التخصص</label>
+            <input class="finput" id="set-spec" type="text">
+          </div>
+          <div class="sett-row">
+            <label class="sett-lbl">Gemini API Key</label>
+            <input class="finput" id="set-key" type="password" placeholder="AIza..." style="direction:ltr;font-family:'JetBrains Mono',monospace;font-size:13px;">
+            <span class="sett-hint">مجاني من <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></span>
+          </div>
+          <button class="btn-p" onclick="saveSettings()">💾 حفظ</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-txt"></span></div>
+
+<script>
+// ── STATE ──────────────────────────────
+var S = {
+  doc: {name:'', spec:'', key:''},
+  pts: [],
+  stats: {today:0, ai:0},
+  cur: null,
+  aiRes: ''
+};
+
+function lsGet(k, d) {
+  try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }
+  catch(e) { return d; }
+}
+function lsSet(k, v) {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+}
+
+// ── BOOT ──────────────────────────────
+window.onload = function() {
+  S.pts   = lsGet('rxai_pts', []);
+  S.stats = lsGet('rxai_stats', {today:0, ai:0});
+  var d   = lsGet('rxai_doc', null);
+  if (d) {
+    document.getElementById('inp-doctor').value = d.name  || '';
+    document.getElementById('inp-spec').value   = d.spec  || '';
+    document.getElementById('inp-apikey').value = d.key   || '';
+  } else {
+    document.getElementById('inp-doctor').value = 'Dr. Amin Bellala';
+    document.getElementById('inp-spec').value   = 'Psychiatre — Psychologue Clinicien';
+  }
+};
+
+// ── LOGIN ──────────────────────────────
+function doLogin() {
+  var name = document.getElementById('inp-doctor').value.trim();
+  var spec = document.getElementById('inp-spec').value.trim();
+  var key  = document.getElementById('inp-apikey').value.trim();
+  if (!name) { toast('⚠️ أدخل اسم الطبيب', 'err'); return; }
+  if (!key)  { toast('⚠️ أدخل مفتاح Gemini API', 'err'); return; }
+  S.doc = {name:name, spec:spec, key:key};
+  lsSet('rxai_doc', S.doc);
+  document.getElementById('doc-name').textContent   = name;
+  document.getElementById('doc-avatar').textContent = name.replace(/Dr\.?\s*/i,'').charAt(0).toUpperCase();
+  document.getElementById('rx-doc-n').textContent   = name;
+  document.getElementById('rx-doc-s').textContent   = spec;
+  document.getElementById('set-name').value = name;
+  document.getElementById('set-spec').value = spec;
+  document.getElementById('set-key').value  = key;
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  refreshDash();
+}
+
+function doLogout() {
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+}
+
+// ── NAVIGATION ──────────────────────────────
+function gotoView(name) {
+  // hide all views
+  var vs = ['dashboard','newpt','ai','rx','settings'];
+  for (var i=0; i<vs.length; i++) {
+    var el = document.getElementById('view-' + vs[i]);
+    if (el) el.classList.remove('active');
+  }
+  // deactivate nav
+  var ns = ['nav-dashboard','nav-newpt','nav-settings'];
+  for (var j=0; j<ns.length; j++) {
+    var nel = document.getElementById(ns[j]);
+    if (nel) nel.classList.remove('active');
+  }
+  // show target
+  var target = document.getElementById('view-' + name);
+  if (target) target.classList.add('active');
+  // activate nav
+  var navMap = {dashboard:'nav-dashboard', newpt:'nav-newpt', settings:'nav-settings', ai:'nav-newpt', rx:'nav-newpt'};
+  var navEl = document.getElementById(navMap[name] || 'nav-dashboard');
+  if (navEl) navEl.classList.add('active');
+  // per-view logic
+  if (name === 'dashboard') refreshDash();
+  if (name === 'settings')  loadSettings();
+  if (name === 'newpt')     clearForm();
+}
+
+function clearForm() {
+  var flds = ['pt-name','pt-age','pt-job','pt-chronic','pt-meds','pt-symptoms','pt-diagnosis','pt-notes'];
+  for (var i=0; i<flds.length; i++) {
+    var el = document.getElementById(flds[i]);
+    if (el) el.value = '';
+  }
+  var g = document.getElementById('pt-gender');
+  var sv = document.getElementById('pt-severity');
+  if (g) g.value = 'male';
+  if (sv) sv.value = 'moderate';
+  S.cur   = null;
+  S.aiRes = '';
+  var aiBox  = document.getElementById('ai-box');
+  var aiLoad = document.getElementById('ai-load');
+  var rxD    = document.getElementById('rx-drugs');
+  var rxI    = document.getElementById('rx-inst');
+  if (aiBox)  aiBox.classList.remove('on');
+  if (aiLoad) aiLoad.classList.remove('on');
+  if (rxD)    rxD.value = '';
+  if (rxI)    rxI.value = '';
+}
+
+// ── DASHBOARD ──────────────────────────────
+function refreshDash() {
+  document.getElementById('st-total').textContent = S.pts.length;
+  document.getElementById('st-today').textContent = S.stats.today;
+  document.getElementById('st-ai').textContent    = S.stats.ai;
+  var grid = document.getElementById('pts-grid');
+  var side = document.getElementById('side-pts');
+  if (!S.pts.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div>لا يوجد مرضى بعد — اضغط "مريض جديد"</div></div>';
+    side.innerHTML = '';
+    return;
+  }
+  var gh = '';
+  for (var i=0; i<S.pts.length; i++) {
+    var p = S.pts[i];
+    gh += '<div class="patient-card" onclick="loadPt('+i+')">'
+        + '<div class="pc-name">'+esc(p.name)+'</div>'
+        + '<div class="pc-meta">'+esc(p.age)+' سنة · '+esc(p.job||'—')+'</div>'
+        + '<span class="pc-diag">'+esc(p.diagnosis)+'</span>'
+        + '<div class="pc-date">📅 '+esc(p.date)+'</div>'
+        + '</div>';
+  }
+  grid.innerHTML = gh;
+  var sh = '';
+  var rec = S.pts.slice(-6).reverse();
+  for (var k=0; k<rec.length; k++) {
+    var ri = S.pts.length-1-k;
+    sh += '<button class="patient-mini" onclick="loadPt('+ri+')">'
+        + '<div class="pm-name">'+esc(rec[k].name)+'</div>'
+        + '<div class="pm-diag">'+esc(rec[k].diagnosis)+'</div>'
+        + '</button>';
+  }
+  side.innerHTML = sh;
+}
+
+function loadPt(idx) {
+  var p = S.pts[idx];
+  if (!p) return;
+  S.cur = JSON.parse(JSON.stringify(p));
+  // go to newpt WITHOUT clearing
+  var vs = ['dashboard','newpt','ai','rx','settings'];
+  for (var i=0; i<vs.length; i++) {
+    var el = document.getElementById('view-'+vs[i]);
+    if (el) el.classList.remove('active');
+  }
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.getElementById('view-newpt').classList.add('active');
+  document.getElementById('nav-newpt').classList.add('active');
+  // fill fields
+  document.getElementById('pt-name').value      = p.name      || '';
+  document.getElementById('pt-age').value        = p.age       || '';
+  document.getElementById('pt-gender').value     = p.gender    || 'male';
+  document.getElementById('pt-job').value        = p.job       || '';
+  document.getElementById('pt-chronic').value    = p.chronic   || '';
+  document.getElementById('pt-meds').value       = p.meds      || '';
+  document.getElementById('pt-symptoms').value   = p.symptoms  || '';
+  document.getElementById('pt-diagnosis').value  = p.diagnosis || '';
+  document.getElementById('pt-severity').value   = p.severity  || 'moderate';
+  document.getElementById('pt-notes').value      = p.notes     || '';
+}
+
+// ── GO TO AI ──────────────────────────────
+function goToAI() {
+  var name = document.getElementById('pt-name').value.trim();
+  var symp = document.getElementById('pt-symptoms').value.trim();
+  var diag = document.getElementById('pt-diagnosis').value.trim();
+  if (!name) { toast('⚠️ أدخل اسم المريض', 'err'); return; }
+  if (!symp) { toast('⚠️ أدخل الأعراض', 'err'); return; }
+  if (!diag) { toast('⚠️ أدخل التشخيص', 'err'); return; }
+  S.cur = collectPt();
+  var sevMap = {mild:'خفيفة', moderate:'متوسطة', severe:'شديدة'};
+  document.getElementById('ai-summary').textContent =
+    name + ' · ' + S.cur.age + ' سنة · ' + (S.cur.gender==='male'?'ذكر':'أنثى') +
+    ' · ' + diag + ' · ' + (sevMap[S.cur.severity]||'');
+  var aiBox  = document.getElementById('ai-box');
+  var aiLoad = document.getElementById('ai-load');
+  var btnAi  = document.getElementById('btn-ai');
+  if (aiBox)  aiBox.classList.remove('on');
+  if (aiLoad) aiLoad.classList.remove('on');
+  if (btnAi)  btnAi.disabled = false;
+  // switch view
+  var vs = ['dashboard','newpt','ai','rx','settings'];
+  for (var i=0; i<vs.length; i++) {
+    var el = document.getElementById('view-'+vs[i]);
+    if (el) el.classList.remove('active');
+  }
+  document.getElementById('view-ai').classList.add('active');
+}
+
+// ── GEMINI ──────────────────────────────
+async function askGemini() {
+  if (!S.doc.key) { toast('⚠️ مفتاح API مفقود', 'err'); return; }
+  if (!S.cur)     { toast('⚠️ لا توجد بيانات مريض', 'err'); return; }
+  var p = S.cur;
+  var btnAi  = document.getElementById('btn-ai');
+  var aiLoad = document.getElementById('ai-load');
+  var aiBox  = document.getElementById('ai-box');
+  btnAi.disabled = true;
+  aiLoad.classList.add('on');
+  aiBox.classList.remove('on');
+  S.stats.ai++;
+  lsSet('rxai_stats', S.stats);
+  document.getElementById('st-ai').textContent = S.stats.ai;
+
+  var prompt = 'Tu es un assistant médical expert en psychopharmacologie.\n'
+    + 'PATIENT: '+p.name+', '+p.age+' ans, '+(p.gender==='male'?'M':'F')+'\n'
+    + 'Profession: '+(p.job||'—')+'\n'
+    + 'Antécédents: '+(p.chronic||'aucun')+'\n'
+    + 'Médicaments actuels: '+(p.meds||'aucun')+'\n'
+    + 'Symptômes: '+p.symptoms+'\n'
+    + 'Diagnostic: '+p.diagnosis+'\n'
+    + 'Sévérité: '+p.severity+'\n'
+    + 'Notes: '+(p.notes||'—')+'\n\n'
+    + 'Propose une suggestion pharmacologique basée sur les guidelines HAS/APA/NICE et études 2020-2024.\n\n'
+    + 'FORMAT OBLIGATOIRE:\n'
+    + '═══════════════════\n'
+    + '📊 ANALYSE CLINIQUE\n[résumé 2-3 lignes]\n\n'
+    + '💊 SUGGESTION PRINCIPALE\nMédicament: [DCI]\n• Classe: ...\n• Dose initiale: ...\n• Dose cible: ...\n• Durée: ...\n• Justification: [guideline]\n\n'
+    + '⚠️ CONTRE-INDICATIONS & INTERACTIONS\n• ...\n\n'
+    + '🔄 ALTERNATIVES\n• [option 2]\n• [option 3]\n\n'
+    + '📚 RÉFÉRENCES\n• [étude 2022-2024]\n\n'
+    + '🩺 SUIVI\n• [contrôles + délai]\n'
+    + '═══════════════════\n'
+    + '⚠️ RAPPEL: Suggestions consultatives uniquement. Décision finale = médecin traitant.';
+
+  try {
+    var r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+S.doc.key,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.3, maxOutputTokens:2048}
+        })
+      }
+    );
+    var data = await r.json();
+    if (data.error) throw new Error(data.error.message);
+    var txt = '';
+    if (data.candidates && data.candidates[0] && data.candidates[0].content &&
+        data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+      txt = data.candidates[0].content.parts[0].text || '';
+    }
+    if (!txt) throw new Error('لم يتم الحصول على نتيجة');
+    S.aiRes = txt;
+    document.getElementById('ai-text').textContent = txt;
+    aiBox.classList.add('on');
+    toast('✅ تم الحصول على الاقتراح', 'ok');
+  } catch(e) {
+    toast('❌ '+e.message, 'err');
+  } finally {
+    btnAi.disabled = false;
+    aiLoad.classList.remove('on');
+  }
+}
+
+// ── PRESCRIPTION ──────────────────────────────
+function goToRx() {
+  if (!S.cur) return;
+  var now = new Date();
+  var ds = now.toLocaleDateString('fr-DZ',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('rx-name').textContent = S.cur.name;
+  document.getElementById('rx-age').textContent  = S.cur.age+' سنة · '+(S.cur.gender==='male'?'ذكر':'أنثى');
+  document.getElementById('rx-diag').textContent = S.cur.diagnosis;
+  document.getElementById('rx-date-h').textContent = ds;
+  document.getElementById('rx-date-f').textContent  = ds;
+  document.getElementById('rx-doc-n').textContent   = S.doc.name;
+  document.getElementById('rx-doc-s').textContent   = S.doc.spec;
+  if (S.aiRes) document.getElementById('rx-drugs').value = S.aiRes;
+  var vs = ['dashboard','newpt','ai','rx','settings'];
+  for (var i=0; i<vs.length; i++) {
+    var el = document.getElementById('view-'+vs[i]);
+    if (el) el.classList.remove('active');
+  }
+  document.getElementById('view-rx').classList.add('active');
+}
+
+function doPrint() {
+  S.stats.today++;
+  lsSet('rxai_stats', S.stats);
+  document.getElementById('st-today').textContent = S.stats.today;
+  window.print();
+}
+
+// ── SAVE PATIENT ──────────────────────────────
+function collectPt() {
+  return {
+    name:      document.getElementById('pt-name').value.trim(),
+    age:       document.getElementById('pt-age').value,
+    gender:    document.getElementById('pt-gender').value,
+    job:       document.getElementById('pt-job').value.trim(),
+    chronic:   document.getElementById('pt-chronic').value.trim(),
+    meds:      document.getElementById('pt-meds').value.trim(),
+    symptoms:  document.getElementById('pt-symptoms').value.trim(),
+    diagnosis: document.getElementById('pt-diagnosis').value.trim(),
+    severity:  document.getElementById('pt-severity').value,
+    notes:     document.getElementById('pt-notes').value.trim(),
+    date:      new Date().toLocaleDateString('fr-DZ'),
+    rx: ''
+  };
+}
+
+function savePt() {
+  var p = collectPt();
+  if (!p.name)      { toast('⚠️ أدخل اسم المريض', 'err'); return; }
+  if (!p.diagnosis) { toast('⚠️ أدخل التشخيص', 'err'); return; }
+  var rxEl = document.getElementById('rx-drugs');
+  if (rxEl) p.rx = rxEl.value;
+  var found = -1;
+  for (var i=0; i<S.pts.length; i++) {
+    if (S.pts[i].name === p.name) { found = i; break; }
+  }
+  if (found >= 0) S.pts[found] = p;
+  else S.pts.push(p);
+  lsSet('rxai_pts', S.pts);
+  toast('✅ تم حفظ ملف المريض', 'ok');
+  refreshDash();
+}
+
+// ── SETTINGS ──────────────────────────────
+function loadSettings() {
+  document.getElementById('set-name').value = S.doc.name;
+  document.getElementById('set-spec').value = S.doc.spec;
+  document.getElementById('set-key').value  = S.doc.key;
+}
+
+function saveSettings() {
+  S.doc.name = document.getElementById('set-name').value.trim();
+  S.doc.spec = document.getElementById('set-spec').value.trim();
+  S.doc.key  = document.getElementById('set-key').value.trim();
+  lsSet('rxai_doc', S.doc);
+  document.getElementById('doc-name').textContent = S.doc.name;
+  document.getElementById('rx-doc-n').textContent = S.doc.name;
+  document.getElementById('rx-doc-s').textContent = S.doc.spec;
+  toast('✅ تم حفظ الإعدادات', 'ok');
+}
+
+// ── LANGUAGE ──────────────────────────────
+function setLang(l) {
+  document.getElementById('btn-ar').classList.toggle('active', l==='ar');
+  document.getElementById('btn-fr').classList.toggle('active', l==='fr');
+  document.documentElement.lang = l;
+  document.documentElement.dir  = l==='ar' ? 'rtl' : 'ltr';
+}
+
+// ── TOAST ──────────────────────────────
+var _tt;
+function toast(msg, type) {
+  clearTimeout(_tt);
+  var t = document.getElementById('toast');
+  document.getElementById('toast-txt').textContent = msg;
+  t.className = 'toast on ' + (type||'ok');
+  _tt = setTimeout(function(){ t.classList.remove('on'); }, 3200);
+}
+
+// ── UTILS ──────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
